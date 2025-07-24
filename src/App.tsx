@@ -1,11 +1,10 @@
 // In App.tsx
-import ParticipationKPI from './components/ParticipationKPI';
+import GeneralKPI from './components/GeneralKPI';
 
 function App() {
   return (
     <div>
-      <h1>Lycans KPIs</h1>
-      <ParticipationKPI />
+      <GeneralKPI />
     </div>
   );
 }

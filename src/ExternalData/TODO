@@ -1,0 +1,24 @@
+Idées de statistiques supplémentaires
+D'après l'analyse des données disponibles dans les fichiers CSV et les fonctions existantes, voici quelques statistiques intéressantes à implémenter :
+
+1. Statistiques par joueur
+Taux de victoire par joueur : Pourcentage de parties gagnées par chaque joueur
+Taux de survie : Pourcentage de parties où le joueur est resté en vie
+Distribution des rôles : Quels rôles chaque joueur a le plus souvent joués
+2. Statistiques par rôle
+Taux de victoire par rôle : Quels rôles gagnent le plus souvent
+Taux de survie par rôle : Quels rôles survivent le plus souvent
+Popularité des rôles : Fréquence d'apparition de chaque rôle
+3. Statistiques de camps/équipes
+Taux de victoire par camp : Village vs Loup vs Solo vs Duo vs Vaudou
+Balance du jeu : Évolution des victoires entre camps au fil du temps
+4. Statistiques de mort
+Causes de mort populaires : Répartition entre mort par Loup, Vote, etc.
+Timing de mort : À quelle phase de jeu les morts surviennent le plus
+5. Analyse des parties
+Corrélation entre durée et victoire : Est-ce que les parties plus longues favorisent certains camps?
+Évolution du méta-jeu : Changements des stats entre versions du jeu
+Proposition d'implémentation
+Je recommande de commencer par implémenter getRoleStats() et getPlayerDetailedStats() car ces statistiques sont riches en insights et techniquement faisables avec la structure actuelle des données.
+
+Souhaitez-vous que je vous fournisse l'implémentation d'une de ces fonctions en particulier ?
