@@ -27,10 +27,7 @@ export default function GeneralKPI() {
     loading: boolean;
   };
 
-  if (loadingParticipation || loadingColors || loadingGameStats) return <div>Loading...</div>;
-
-    console.log('Participation Data:', participationData);
-    console.log('Color Data:', colorData);
+  if (loadingParticipation || loadingColors || loadingGameStats) return <div>Chargement...</div>;
 
   // Merge color info into participation data
   const dataWithColors: ParticipationData[] = participationData.map(player => {
@@ -50,8 +47,6 @@ export default function GeneralKPI() {
   // Average participation rate for all players
   const avgRate =
     (participationData.reduce((sum, d) => sum + d.ParticipationRate, 0) / (participationData.length || 1) * 100).toFixed(1);
-
-  console.log('Final data:' + topPlayers);
 
   return (
     <div>
