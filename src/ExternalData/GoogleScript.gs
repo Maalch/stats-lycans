@@ -14,7 +14,7 @@ function doGet(e) {
   }
 }
 
-function getPlayersWithColors(e) {
+function getPlayersWithColors() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var joueursSheet = ss.getSheetByName('Joueurs');
   var data = joueursSheet.getDataRange().getValues();
