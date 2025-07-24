@@ -1,0 +1,29 @@
+RoleID,NomDuRole,TypeDeVictoire
+Villageois,Villageois,Village
+Loup,Loup,Loup
+LoupNecro,Loup Nécromancien,Loup
+LoupPossesseur,Loup Possesseur,Loup
+LoupMeta,Loup Métamorphe,Loup
+Chasseur,Chasseur,Village
+Alchimiste,Alchimiste,Village
+Paysan,Paysan,Village
+Garde,Garde,Village
+Pretre,Prêtre,Village
+AngeGardien,Ange gardien,Village
+MedecinLegiste,Médecin Légiste,Village
+Exorciste,Exorciste,Village
+Tavernier,Tavernier,Village
+Vengeur,Vengeur,Village
+Survivaliste,Survivaliste,Village
+IdiotDuVillage,Idiot du village,Solo
+LoupAmoureux,Loup amoureux,Duo
+VillageoisAmoureux,Villageois amoureux,Duo
+Traitre,Traitre,Loup
+VillageoisNecro,Villageois rez par un Loup Nécromancien,Loup
+Espion,Espion,Solo
+ChasseurDePrime,Chasseur de prime,Solo
+LaBete,La bête,Solo
+Scientifique,Scientifique,Solo
+Agent,Agent,Solo
+Vaudou,Vaudou,Vaudou
+VillageoisVaudou,Villageois rez par un Vaudou,Vaudou
