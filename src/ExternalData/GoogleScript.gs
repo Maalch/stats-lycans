@@ -6,52 +6,12 @@ function doGet(e) {
     return getPlayersWithColors();
   } else if (action === 'gameStats') {
     return getGameDurationStats();
+  } else if (action === 'playerDetailedStats') {
+    return getPlayerDetailedStats();
   }
   else {
     return ContentService.createTextOutput('Invalid action - not found').setMimeType(ContentService.MimeType.TEXT);
   }
-}
-
-function getParticipationRate(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var participationsSheet = ss.getSheetByName('Participations');
-  var partiesSheet = ss.getSheetByName('Parties');
-
-  // Get all participations data
-  var participations = participationsSheet.getDataRange().getValues();
-  var participationHeaders = participations[0];
-  var partieIdIdx = participationHeaders.indexOf('PartieID');
-  var joueurIdIdx = participationHeaders.indexOf('JoueurID');
-
-// Get all unique PartieID from Parties sheet, ignoring empty rows
-var parties = partiesSheet.getDataRange().getValues();
-var partiesHeaders = parties[0];
-var partieIdIndex = partiesHeaders.indexOf('PartieID');
-var allPartieIDs = new Set(
-  parties.slice(1)
-    .map(row => row[partieIdIndex])
-    .filter(id => id !== "" && id !== null && id !== undefined)
-);
-var totalGames = allPartieIDs.size;
-
-  // Count participations per player
-  var playerCounts = {};
-  participations.slice(1).forEach(row => {
-    var joueur = row[joueurIdIdx];
-    var partie = row[partieIdIdx];
-    if (!joueur || !partie) return;
-    if (!playerCounts[joueur]) playerCounts[joueur] = new Set();
-    playerCounts[joueur].add(partie);
-  });
-
-  // Calculate participation rate
-  var result = Object.entries(playerCounts).map(([joueur, partieSet]) => ({
-    JoueurID: joueur,
-    ParticipationCount: partieSet.size,
-    ParticipationRate: partieSet.size / totalGames
-  }));
-
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function getPlayersWithColors(e) {
@@ -182,5 +142,156 @@ function getGameDurationStats() {
       LienVideo: max.LienVideo
     }
   };
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getPlayerDetailedStats() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var participationsSheet = ss.getSheetByName('Participations');
+  var rolesSheet = ss.getSheetByName('Roles');
+
+  // Récupération des données de participation
+  var participations = participationsSheet.getDataRange().getValues();
+  var participationHeaders = participations[0];
+  var partieIdIdx = participationHeaders.indexOf('PartieID');
+  var joueurIdIdx = participationHeaders.indexOf('JoueurID');
+  var roleIdIdx = participationHeaders.indexOf('RoleID');
+  var mortIdx = participationHeaders.indexOf('Mort');
+  var resultatIdx = participationHeaders.indexOf('Resultat');
+  var roleSecondaireIdx = participationHeaders.indexOf('RoleSecondaireID');
+
+  // Récupération des données de rôles pour obtenir les types de victoire (camp)
+  var roles = rolesSheet.getDataRange().getValues();
+  var roleHeaders = roles[0];
+  var roleIdIndex = roleHeaders.indexOf('RoleID');
+  var typeVictoireIndex = roleHeaders.indexOf('TypeDeVictoire');
+
+  // Créer un mapping des rôles vers leur type de victoire (camp)
+  var roleToCamp = {};
+  roles.slice(1).forEach(row => {
+    if (row[roleIdIndex]) {
+      roleToCamp[row[roleIdIndex]] = row[typeVictoireIndex] || 'Inconnu';
+    }
+  });
+
+  // Calculer le nombre total de parties uniques
+  var allPartieIDs = new Set(
+    participations.slice(1)
+      .map(row => row[partieIdIdx])
+      .filter(id => id !== "" && id !== null && id !== undefined)
+  );
+  var totalGames = allPartieIDs.size;
+
+  // Initialiser les stats par joueur
+  var playerStats = {};
+
+  // Traiter toutes les participations
+  participations.slice(1).forEach(row => {
+    var joueur = row[joueurIdIdx];
+    var role = row[roleIdIdx];
+    var roleSecondaire = row[roleSecondaireIdx];
+    var mort = row[mortIdx] === 'OUI';
+    var resultat = row[resultatIdx] === 'V';
+
+    if (!joueur) return;
+
+    // Initialiser les stats du joueur si première rencontre
+    if (!playerStats[joueur]) {
+      playerStats[joueur] = {
+        JoueurID: joueur,
+        TotalParties: 0,
+        Victoires: 0,
+        Defaites: 0,
+        Survivant: 0,
+        Mort: 0,
+        Roles: {},
+        RolesSecondaires: {},
+        CampJoue: {},
+        VictoireParCamp: {}
+      };
+    }
+
+    // Mettre à jour les compteurs
+    playerStats[joueur].TotalParties++;
+
+    if (resultat) {
+      playerStats[joueur].Victoires++;
+    } else {
+      playerStats[joueur].Defaites++;
+    }
+
+    if (mort) {
+      playerStats[joueur].Mort++;
+    } else {
+      playerStats[joueur].Survivant++;
+    }
+
+    // Compter les rôles joués
+    if (role) {
+      if (!playerStats[joueur].Roles[role]) {
+        playerStats[joueur].Roles[role] = 0;
+      }
+      playerStats[joueur].Roles[role]++;
+
+      // Enregistrer le camp
+      var camp = roleToCamp[role] || 'Inconnu';
+      if (!playerStats[joueur].CampJoue[camp]) {
+        playerStats[joueur].CampJoue[camp] = 0;
+        playerStats[joueur].VictoireParCamp[camp] = 0;
+      }
+      playerStats[joueur].CampJoue[camp]++;
+      if (resultat) {
+        playerStats[joueur].VictoireParCamp[camp]++;
+      }
+    }
+
+    // Compter les rôles secondaires
+    if (roleSecondaire) {
+      if (!playerStats[joueur].RolesSecondaires[roleSecondaire]) {
+        playerStats[joueur].RolesSecondaires[roleSecondaire] = 0;
+      }
+      playerStats[joueur].RolesSecondaires[roleSecondaire]++;
+    }
+  });
+
+  // Calculer les taux et formater le résultat final
+  var result = Object.values(playerStats).map(player => {
+    // Calculer les taux en pourcentage
+    player.TauxVictoire = player.TotalParties > 0 ? (player.Victoires / player.TotalParties) : 0;
+    player.TauxSurvie = player.TotalParties > 0 ? (player.Survivant / player.TotalParties) : 0;
+
+    // Convertir les objets de comptage en tableaux pour faciliter l'utilisation côté client
+    player.DistributionRoles = Object.entries(player.Roles).map(([role, count]) => ({
+      RoleID: role,
+      Count: count,
+      Percentage: count / player.TotalParties
+    })).sort((a, b) => b.Count - a.Count);
+
+    player.DistributionRolesSecondaires = Object.entries(player.RolesSecondaires).map(([role, count]) => ({
+      RoleID: role,
+      Count: count,
+      Percentage: count / player.TotalParties
+    })).sort((a, b) => b.Count - a.Count);
+
+    player.DistributionCamps = Object.entries(player.CampJoue).map(([camp, count]) => ({
+      Camp: camp,
+      Count: count,
+      Percentage: count / player.TotalParties,
+      Victoires: player.VictoireParCamp[camp] || 0,
+      TauxVictoireCamp: player.VictoireParCamp[camp] ? (player.VictoireParCamp[camp] / count) : 0
+    })).sort((a, b) => b.Count - a.Count);
+
+    // Ajouter le nombre total de parties uniques
+    player.TotalGames = totalGames;
+
+    // Supprimer les objets originaux pour réduire la taille de la réponse
+    delete player.Roles;
+    delete player.RolesSecondaires;
+    delete player.CampJoue;
+    delete player.VictoireParCamp;
+
+    return player;
+  }).sort((a, b) => b.TauxVictoire - a.TauxVictoire);
+
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
