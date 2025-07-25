@@ -62,7 +62,7 @@ export default function SessionsKPI() {
                   <th>Durée moyenne</th>
                   <th>Temps total</th>
                   <th>Joueurs/partie</th>
-                  <th>Vidéos</th>
+                  <th>Lien Youtube</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,7 +129,7 @@ export default function SessionsKPI() {
           
           {selectedSessionInfo.VideosYoutube && selectedSessionInfo.VideosYoutube.length > 0 && (
             <div className="lycans-video-links">
-              <h4>Vidéos de la session</h4>
+              <h4>Liens Youtube de la session</h4>
               <div className="lycans-video-grid">
                 {selectedSessionInfo.VideosYoutube.map((link, idx) => (
                   <a 
@@ -139,7 +139,7 @@ export default function SessionsKPI() {
                     rel="noopener noreferrer"
                     className="lycans-video-button"
                   >
-                    Vidéo {idx + 1}
+                    Lien {idx + 1}
                   </a>
                 ))}
               </div>
@@ -154,7 +154,7 @@ export default function SessionsKPI() {
             
             {sessionPlayerStatsError && (
               <div className="info-message error">
-                <p>⚠️ Erreur: {sessionPlayerStatsError.message}</p>
+                <p>Erreur: {sessionPlayerStatsError.message}</p>
               </div>
             )}
             
@@ -203,11 +203,20 @@ export default function SessionsKPI() {
                                 <Cell key={`cell-${index}`} fill={ROLE_COLORS[index % ROLE_COLORS.length]} />
                               ))}
                             </Pie>
-                            <Tooltip formatter={(value) => [`${value} fois`, 'Joué']} />
+                            <Tooltip
+                              formatter={(
+                                value: number,
+                                _name: string,
+                                props: { payload?: { RoleName?: string } }
+                              ) => {
+                                const role = props?.payload?.RoleName || '';
+                                return [`${value} fois`, `${role}`]; // Swap positions - name first, value second
+                              }}
+                            />
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="role-legend">
-                          {player.DistributionRolesSession.slice(0, 3).map((role, idx) => (
+                          {player.DistributionRolesSession.slice(0, 8).map((role, idx) => (
                             <div key={idx} className="role-item">
                               <span 
                                 className="role-color" 
