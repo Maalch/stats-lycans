@@ -19,8 +19,8 @@ function doGet(e) {
 // Fonction de test pour les statistiques par session
 function test_doGet_sessionStats() {
   var cache = CacheService.getScriptCache();
-  cache.remove('gameStats');
-  var e = { parameter: { action: 'gameStats' } };
+  cache.remove('playerDetailedStats');
+  var e = { parameter: { action: 'playerDetailedStats' } };
   var result = doGet(e);
   Logger.log(result.getContent());
   return result;
@@ -51,17 +51,43 @@ function getCachedData(cacheKey, generatorFn, cacheSeconds) {
  * @return {string} JSON string contenant les statistiques par session
  */
 function getSessionStatsRaw() {
-
-  var playerEntriesInfo = getLycanSheetData(LYCAN_TABS.PARTICIPATIONS);
-  var playerEntries = playerEntriesInfo.values;
-  var playerColumnTitles = playerData[0];
-
-  // Récupérer les participations pour compter le nombre de joueurs
-  var matchRefColIdx = playerColumnTitles(playerColumnTitles, LYCAN_COLS.MATCH_ID);
+  // Get participation data to count players per match
+  var gameEntryData = getLycanSheetData(LYCAN_TABS.PARTICIPATIONS);
+  var playerEntries = gameEntryData.values;
+  var playerColumnTitles = playerEntries[0];
+  var matchRefColIdx = findColumnIndex(playerColumnTitles, LYCAN_COLS.MATCH_ID);
   
-  // Regrouper par date de session (clé = date)
+  // Get match data (with dates, durations, etc.)
+  var gameInfo = getLycanSheetData(LYCAN_TABS.MATCHES);
+  var gameData = gameInfo.values;
+  var gameHeaders = gameData[0];
+  var gameIdColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.MATCH_ID);
+  var dateColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.CALENDAR);
+  var durationColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.TIMING);
+  var videoColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.YOUTUBE);
+  
+  // Process match data to create objects with needed properties
+  var lycansMatches = [];
+  for (var i = 1; i < gameData.length; i++) {
+    var currentMatch = gameData[i];
+    var matchId = currentMatch[gameIdColIdx];
+    var matchDate = formatLycanDate(currentMatch[dateColIdx]);
+    var durationSec = chronoToTicks(currentMatch[durationColIdx]);
+    var videoLink = currentMatch[videoColIdx];
+    
+    if (!matchId || !matchDate || durationSec === null) continue;
+    
+    lycansMatches.push({
+      MatchID: matchId,
+      SessionDate: matchDate,
+      DurationSeconds: durationSec,
+      YouTubeLink: videoLink
+    });
+  }
+  
+  // Group matches by session date
   var sessionsLookup = {};
-  playerMatches.forEach(function(match) {
+  lycansMatches.forEach(function(match) {
     if (!sessionsLookup[match.SessionDate]) {
       sessionsLookup[match.SessionDate] = {
         SessionDate: match.SessionDate,
@@ -82,7 +108,7 @@ function getSessionStatsRaw() {
     }
   });
   
-  // Calculer nombre de joueurs par partie
+  // Count players per match
   var matchPlayerCount = {};
   playerEntries.slice(1).forEach(function(entry) {
     var matchRef = entry[matchRefColIdx];
@@ -94,35 +120,35 @@ function getSessionStatsRaw() {
     matchPlayerCount[matchRef]++;
   });
   
-  // Calculer les moyennes et préparer les résultats
-  var playerSessions = [];
+  // Calculate averages and prepare results
+  var sessionStats = [];
   Object.keys(sessionsLookup).forEach(function(dateKey) {
     var sessionGroup = sessionsLookup[dateKey];
     
-    // Calculer le nombre moyen de joueurs par partie
+    // Calculate average players per match
     var totalPlayers = 0;
     sessionGroup.Matches.forEach(function(matchId) {
       totalPlayers += matchPlayerCount[matchId] || 0;
     });
     var avgPlayers = sessionGroup.MatchCount > 0 ? totalPlayers / sessionGroup.MatchCount : 0;
     
-    // Formater les durées
+    // Format durations
     var avgDurationSecs = sessionGroup.MatchCount > 0 ? 
                           sessionGroup.TotalPlayTime / sessionGroup.MatchCount : 0;
     
-    playerSessions.push({
+    sessionStats.push({
       DateSession: sessionGroup.SessionDate,
       NombreParties: sessionGroup.MatchCount,
-      DureeMoyenne: secondsTotalToTimeString(avgDurationSecs),
-      TempsJeuTotal: secondsTotalToTimeString(sessionGroup.TotalPlayTime),
-      JoueursMoyen: Math.round(avgPlayers * 10) / 10, // Arrondi à 1 décimale
+      DureeMoyenne: ticksToChronoFormat(avgDurationSecs),
+      TempsJeuTotal: ticksToChronoFormat(sessionGroup.TotalPlayTime),
+      JoueursMoyen: Math.round(avgPlayers * 10) / 10, // Round to 1 decimal
       VideosYoutube: sessionGroup.YouTubeLinks,
       PartiesIDs: sessionGroup.Matches
     });
   });
   
-  // Trier par date (plus récent en premier)
-  playerSessions.sort(function(a, b) {
+  // Sort by date (most recent first)
+  sessionStats.sort(function(a, b) {
     var partsA = a.DateSession.split('/');
     var partsB = b.DateSession.split('/');
     
@@ -132,7 +158,7 @@ function getSessionStatsRaw() {
     return dateB - dateA;
   });
   
-  return JSON.stringify(playerSessions);
+  return JSON.stringify(sessionStats);
 }
 
 /**
@@ -236,29 +262,30 @@ function getGameDurationStatsRaw() {
  * @return {string} JSON string contenant les statistiques sur les taux de victoires, de morts, des rôles...
  */
 function getPlayerDetailedStatsRaw() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var participationsSheet = ss.getSheetByName('Participations');
-  var rolesSheet = ss.getSheetByName('Roles');
 
-  // Récupération des données de participation
-  var participations = participationsSheet.getDataRange().getValues();
-  var participationHeaders = participations[0];
-  var partieIdIdx = participationHeaders.indexOf('PartieID');
-  var joueurIdIdx = participationHeaders.indexOf('JoueurID');
-  var roleIdIdx = participationHeaders.indexOf('RoleID');
-  var mortIdx = participationHeaders.indexOf('Mort');
-  var resultatIdx = participationHeaders.indexOf('Resultat');
-  var roleSecondaireIdx = participationHeaders.indexOf('RoleSecondaireID');
+  // Récupérer les données avec nos utilitaires
+  var participationInfo = getLycanSheetData(LYCAN_TABS.PARTICIPATIONS);
+  var participationData = participationInfo.values;
+  var participationHeaders = participationData[0];
+  
+  // Utiliser notre fonction findColumnIndex
+  var partieIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.MATCH_ID);
+  var joueurIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.PLAYERID);
+  var roleIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.ROLEID);
+  var mortIdx = findColumnIndex(participationHeaders, LYCAN_COLS.DEATH);
+  var resultatIdx = findColumnIndex(participationHeaders, LYCAN_COLS.VICTORY);
+  var roleSecondaireIdx = findColumnIndex(participationHeaders, LYCAN_COLS.SECONDARY_ROLE);
 
   // Récupération des données de rôles pour obtenir les types de victoire (camp)
-  var roles = rolesSheet.getDataRange().getValues();
-  var roleHeaders = roles[0];
-  var roleIdIndex = roleHeaders.indexOf('RoleID');
-  var typeVictoireIndex = roleHeaders.indexOf('TypeDeVictoire');
+  var rolesInfo = getLycanSheetData(LYCAN_TABS.ROLES);
+  var rolesData = rolesInfo.values;
+  var roleHeaders = rolesData[0];
+  var roleIdIndex = findColumnIndex(roleHeaders, LYCAN_COLS.ROLEID);
+  var typeVictoireIndex = findColumnIndex(roleHeaders, LYCAN_COLS.VICTORY_TYPE);
 
   // Créer un mapping des rôles vers leur type de victoire (camp)
   var roleToCamp = {};
-  roles.slice(1).forEach(row => {
+  rolesData.slice(1).forEach(row => {
     if (row[roleIdIndex]) {
       roleToCamp[row[roleIdIndex]] = row[typeVictoireIndex] || 'Inconnu';
     }
@@ -266,7 +293,7 @@ function getPlayerDetailedStatsRaw() {
 
   // Calculer le nombre total de parties uniques
   var allPartieIDs = new Set(
-    participations.slice(1)
+    participationData.slice(1)
       .map(row => row[partieIdIdx])
       .filter(id => id !== "" && id !== null && id !== undefined)
   );
@@ -276,7 +303,7 @@ function getPlayerDetailedStatsRaw() {
   var playerStats = {};
 
   // Traiter toutes les participations
-  participations.slice(1).forEach(row => {
+  participationData.slice(1).forEach(row => {
     var joueur = row[joueurIdIdx];
     var role = row[roleIdIdx];
     var roleSecondaire = row[roleSecondaireIdx];
