@@ -1,6 +1,7 @@
 import './App.css';
 import GeneralKPI from './components/GeneralKPI';
 import PlayersKPI from './components/PlayersKPI';
+import SessionsKPI from './components/SessionsKPI';
 
 function App() {
   return (
@@ -13,6 +14,9 @@ function App() {
       <div className="main-container">
         <div className="section-card">
           <GeneralKPI />
+        </div>
+        <div className="section-card">
+          <SessionsKPI />
         </div>
         <div className="section-card">
           <PlayersKPI />

@@ -3,13 +3,14 @@ function doGet(e) {
     'playersWithColors': { key: 'playersWithColors', fn: getPlayersWithColorsRaw },
     'gameStats': { key: 'gameStats', fn: getGameDurationStatsRaw },
     'playerDetailedStats': { key: 'playerDetailedStats', fn: getPlayerDetailedStatsRaw },
-    'sessionStats': { key: 'sessionStats', fn: getSessionStatsRaw }
+    'sessionStats': { key: 'sessionStats', fn: getSessionStatsRaw },
+    'playerStatsBySession': { key: 'playerStatsBySession', fn: getPlayerStatsBySessionRaw }
   };
   
   var action = e.parameter.action;
   var actionData = actionMap[action];
   if (actionData) {
-    return getCachedData(actionData.key, actionData.fn, 300);
+    return getCachedData(actionData.key, actionData.fn, 300, e);
   } else {
     return ContentService.createTextOutput('Invalid action - not found')
       .setMimeType(ContentService.MimeType.TEXT);
@@ -19,15 +20,38 @@ function doGet(e) {
 // Fonction de test pour les statistiques par session
 function test_doGet_sessionStats() {
   var cache = CacheService.getScriptCache();
-  cache.remove('playerDetailedStats');
-  var e = { parameter: { action: 'playerDetailedStats' } };
+  cache.remove('gameStats');
+  var e = { parameter: { action: 'gameStats' } };
   var result = doGet(e);
   Logger.log(result.getContent());
   return result;
 }
 
+// Fonction de test pour les statistiques des joueurs par session
+function test_doGet_playerStatsBySession() {
+  var cache = CacheService.getScriptCache();
+  // Clear the cache for this endpoint
+  cache.remove('playerStatsBySession');
+  
+  // You need to provide a valid date that exists in your data
+  // Format should match your data (e.g., "DD/MM/YYYY")
+  var sessionDate = "18/07/2025"; // Replace with a real session date from your data
+  
+  var e = { 
+    parameter: { 
+      action: 'playerStatsBySession',
+      sessionDate: sessionDate
+    } 
+  };
+  
+  var result = doGet(e);
+  Logger.log("Test playerStatsBySession for date: " + sessionDate);
+  Logger.log(result.getContent());
+  return result;
+}
+
 //Caching data
-function getCachedData(cacheKey, generatorFn, cacheSeconds) {
+function getCachedData(cacheKey, generatorFn, cacheSeconds, e) {
   try {
     var cache = CacheService.getScriptCache();
     var cached = cache.get(cacheKey);
@@ -36,7 +60,7 @@ function getCachedData(cacheKey, generatorFn, cacheSeconds) {
       return ContentService.createTextOutput(cached).setMimeType(ContentService.MimeType.JSON);
     }
     
-    var result = generatorFn();
+    var result = generatorFn(e);
     cache.put(cacheKey, result, cacheSeconds);
     return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
@@ -410,5 +434,140 @@ function getPlayerDetailedStatsRaw() {
     return player;
   }).sort((a, b) => b.TauxVictoire - a.TauxVictoire);
 
+  return JSON.stringify(result);
+}
+
+/**
+ * Récupère des stats détaillées sur les sessions
+ * @return {string} JSON string contenant les statistiques d'une session (par date)
+ */
+function getPlayerStatsBySessionRaw(e) {
+  var sessionDate = e.parameter.sessionDate;
+  if (!sessionDate) {
+    return JSON.stringify({ error: 'Session date parameter required' });
+  }
+  
+  // Get all matches for this session
+  var gameInfo = getLycanSheetData(LYCAN_TABS.MATCHES);
+  var gameData = gameInfo.values;
+  var gameHeaders = gameData[0];
+  var gameIdColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.MATCH_ID);
+  var dateColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.CALENDAR);
+  
+  // Filter matches by session date
+  var sessionMatchIDs = [];
+  for (var i = 1; i < gameData.length; i++) {
+    var currentMatch = gameData[i];
+    var matchDate = formatLycanDate(currentMatch[dateColIdx]);
+    var matchId = currentMatch[gameIdColIdx];
+    
+    if (matchDate === sessionDate && matchId) {
+      sessionMatchIDs.push(matchId);
+    }
+  }
+  
+  // Get player participation data for these matches
+  var participationInfo = getLycanSheetData(LYCAN_TABS.PARTICIPATIONS);
+  var participationData = participationInfo.values;
+  var participationHeaders = participationData[0];
+  var partieIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.MATCH_ID);
+  var joueurIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.PLAYERID);
+  var roleIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.ROLEID);
+  var mortIdx = findColumnIndex(participationHeaders, LYCAN_COLS.DEATH);
+  var resultatIdx = findColumnIndex(participationHeaders, LYCAN_COLS.VICTORY);
+
+  // Get role data to map role IDs to role names
+  var rolesInfo = getLycanSheetData(LYCAN_TABS.ROLES);
+  var rolesData = rolesInfo.values;
+  var rolesHeaders = rolesData[0];
+  var roleIdColIdx = findColumnIndex(rolesHeaders, LYCAN_COLS.ROLEID);
+  var roleNameColIdx = findColumnIndex(rolesHeaders, LYCAN_COLS.ROLENAME);
+  
+  // Create a mapping from role IDs to role names
+  var roleIdToName = {};
+  for (var i = 1; i < rolesData.length; i++) {
+    var roleRow = rolesData[i];
+    var roleId = roleRow[roleIdColIdx];
+    var roleName = roleRow[roleNameColIdx];
+    
+    if (roleId) {
+      roleIdToName[roleId] = roleName || roleId;
+    }
+  }
+  
+  // Process player stats for this session
+  var playerSessionStats = {};
+  
+  participationData.slice(1).forEach(row => {
+    var matchId = row[partieIdIdx];
+    // Skip if this participation is not from our session
+    if (!sessionMatchIDs.includes(matchId)) return;
+    
+    var joueur = row[joueurIdIdx];
+    var role = row[roleIdIdx];
+    var mort = row[mortIdx] === 'OUI';
+    var resultat = row[resultatIdx] === 'V';
+    
+    if (!joueur) return;
+    
+    // Initialize player stats if needed
+    if (!playerSessionStats[joueur]) {
+      playerSessionStats[joueur] = {
+        JoueurID: joueur,
+        PartiesSession: 0,
+        VictoiresSession: 0,
+        DefaitesSession: 0,
+        SurvivantSession: 0,
+        MortSession: 0,
+        RolesSession: {}
+      };
+    }
+    
+    // Update counters
+    playerSessionStats[joueur].PartiesSession++;
+    
+    if (resultat) {
+      playerSessionStats[joueur].VictoiresSession++;
+    } else {
+      playerSessionStats[joueur].DefaitesSession++;
+    }
+    
+    if (mort) {
+      playerSessionStats[joueur].MortSession++;
+    } else {
+      playerSessionStats[joueur].SurvivantSession++;
+    }
+    
+    // Count roles
+    if (role) {
+      if (!playerSessionStats[joueur].RolesSession[role]) {
+        playerSessionStats[joueur].RolesSession[role] = 0;
+      }
+      playerSessionStats[joueur].RolesSession[role]++;
+    }
+  });
+  
+  // Calculate rates and format for output
+  var result = Object.values(playerSessionStats).map(player => {
+    // Calculate percentage rates
+    player.TauxVictoireSession = player.PartiesSession > 0 ? 
+      (player.VictoiresSession / player.PartiesSession) : 0;
+    player.TauxSurvieSession = player.PartiesSession > 0 ? 
+      (player.SurvivantSession / player.PartiesSession) : 0;
+    
+    // Convert role counts to array for easier frontend use with role names
+    player.DistributionRolesSession = Object.entries(player.RolesSession).map(([roleId, count]) => ({
+      RoleID: roleId, // Keep the original roleId (e.g., "ChasseurDePrime")
+      RoleName: roleIdToName[roleId] || roleId, // Use the name (e.g., "Chasseur de Prime") if available
+      Count: count,
+      Percentage: count / player.PartiesSession
+    })).sort((a, b) => b.Count - a.Count);
+    
+    // Remove the original object to reduce response size
+    delete player.RolesSession;
+    
+    return player;
+  });
+  
   return JSON.stringify(result);
 }
