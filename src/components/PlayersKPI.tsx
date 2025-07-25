@@ -23,6 +23,17 @@ export default function PlayersKPI() {
     (playersWithColors || []).map((player: PlayerColor) => [player.JoueurID, player.CouleurBackground])
   );
 
+  // Sort players alphabetically by JoueurID (case-insensitive, accent-insensitive)
+  let sortedPlayers = [...playerStats].sort((a, b) =>
+    a.JoueurID.localeCompare(b.JoueurID, 'fr', { sensitivity: 'base' })
+  );
+
+  const ponceIndex = sortedPlayers.findIndex(player => player.JoueurID.toLowerCase() === 'ponce');
+  if (ponceIndex > -1) {
+    const [poncePlayer] = sortedPlayers.splice(ponceIndex, 1);
+    sortedPlayers = [poncePlayer, ...sortedPlayers];
+  }
+
    const playerStatsWithParticipation = playerStats.map(player => ({
    ...player,
    ParticipationRate: player.TotalGames > 0 ? player.TotalParties / player.TotalGames : 0,
@@ -45,7 +56,7 @@ export default function PlayersKPI() {
           onChange={(e) => setSelectedPlayer(e.target.value || null)}
         >
           <option value="">Tous les joueurs</option>
-          {playerStats.map((player) => (
+          {sortedPlayers.map((player) => (
             <option key={player.JoueurID} value={player.JoueurID}>
               {player.JoueurID}
             </option>

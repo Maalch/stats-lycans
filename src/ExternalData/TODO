@@ -3,10 +3,10 @@ D après l analyse des données disponibles dans les fichiers CSV et les fonctio
 
 1. Statistiques par session de jeu
    - Regrouper les parties par session de jeu (= même date), avec des statistiques globales:
-       - Nombre total de parties
-       - Durée moyenne des parties
+       - Nombre total de parties de la session
+       - Durée moyenne des parties de la session
        - Temps de jeu total de la session
-       - Nombre moyen de joueurs par partie
+       - Nombre moyen de joueurs par partie de la session
        - Lien vers toutes les vidéos youtube de la session
    - Statistiques détaillées par joueur dans la session :
        - Nombre de parties jouées par le joueur
