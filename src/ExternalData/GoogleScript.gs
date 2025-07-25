@@ -1,20 +1,38 @@
 function doGet(e) {
   var action = e.parameter.action;
-  if (action === 'participationRate') {
-    return getParticipationRate();
-  } else if (action === 'playersWithColors') {
-    return getPlayersWithColors();
+  if (action === 'playersWithColors') {
+    return getCachedData('playersWithColors', getPlayersWithColorsRaw, 300);
   } else if (action === 'gameStats') {
-    return getGameDurationStats();
+    return getCachedData('gameDurationStats', getGameDurationStatsRaw, 300);
   } else if (action === 'playerDetailedStats') {
-    return getPlayerDetailedStats();
-  }
-  else {
+    return getCachedData('playerDetailedStats', getPlayerDetailedStatsRaw, 300);
+  } else {
     return ContentService.createTextOutput('Invalid action - not found').setMimeType(ContentService.MimeType.TEXT);
   }
 }
 
-function getPlayersWithColors() {
+function test_doGet_playersWithColors() {
+  var e = { parameter: { action: 'playersWithColors' } };
+  var result = doGet(e);
+  Logger.log(result.getContent());
+  return result;
+}
+
+//Caching data
+function getCachedData(cacheKey, generatorFn, cacheSeconds) {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get(cacheKey);
+  if (cached) {
+    return ContentService.createTextOutput(cached).setMimeType(ContentService.MimeType.JSON);
+  }
+  // generatorFn should return a string (JSON), not a TextOutput
+  var result = generatorFn();
+  cache.put(cacheKey, result, cacheSeconds);
+  return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function getPlayersWithColorsRaw() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var joueursSheet = ss.getSheetByName('Joueurs');
   var data = joueursSheet.getDataRange().getValues();
@@ -30,11 +48,11 @@ function getPlayersWithColors() {
     CouleurBackground: backgrounds[i + 1][couleurIdx] // +1 to skip header row
   }));
 
-  return ContentService.createTextOutput(JSON.stringify(players)).setMimeType(ContentService.MimeType.JSON);
+  return JSON.stringify(players);
 }
 
 // Calcule la durée moyenne, la partie la plus courte et la plus longue avec date et lien vidéo
-function getGameDurationStats() {
+function getGameDurationStatsRaw() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var partiesSheet = ss.getSheetByName('Parties');
   var parties = partiesSheet.getDataRange().getValues();
@@ -108,7 +126,7 @@ function getGameDurationStats() {
     });
   }
   if (stats.length === 0) {
-    return ContentService.createTextOutput(JSON.stringify({ error: 'No valid durations found' })).setMimeType(ContentService.MimeType.JSON);
+    return JSON.stringify({ error: 'No valid durations found' });
   }
 
   // Moyenne
@@ -142,10 +160,10 @@ function getGameDurationStats() {
       LienVideo: max.LienVideo
     }
   };
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  return JSON.stringify(result);
 }
 
-function getPlayerDetailedStats() {
+function getPlayerDetailedStatsRaw() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var participationsSheet = ss.getSheetByName('Participations');
   var rolesSheet = ss.getSheetByName('Roles');
@@ -293,5 +311,5 @@ function getPlayerDetailedStats() {
     return player;
   }).sort((a, b) => b.TauxVictoire - a.TauxVictoire);
 
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  return JSON.stringify(result);
 }
