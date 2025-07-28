@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import './App.css';
-import GeneralKPI from './components/GeneralKPI';
-import PlayersKPI from './components/PlayersKPI';
-import SessionsKPI from './components/SessionsKPI';
 import TabNavigation from './components/TabNavigation';
+
+const GeneralKPI = lazy(() => import('./components/GeneralKPI'));
+const PlayersKPI = lazy(() => import('./components/PlayersKPI'));
+const SessionsKPI = lazy(() => import('./components/SessionsKPI'));
 
 function App() {
   const [activeTab, setActiveTab] = useState('general');
@@ -29,9 +30,11 @@ function App() {
         />
 
         <div className="section-card">
-          {activeTab === 'general' && <GeneralKPI />}
-          {activeTab === 'sessions' && <SessionsKPI />}
-          {activeTab === 'players' && <PlayersKPI />}
+          <Suspense fallback={<div>Chargement...</div>}>
+            {activeTab === 'general' && <GeneralKPI />}
+            {activeTab === 'sessions' && <SessionsKPI />}
+            {activeTab === 'players' && <PlayersKPI />}
+          </Suspense>
         </div>
       </div>
     </div>

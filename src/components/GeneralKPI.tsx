@@ -19,16 +19,16 @@ export default function GeneralKPI() {
   return (
     <div>
       <h2>Statistiques Générales des Parties</h2>
-      <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <div style={{ minWidth: 200 }}>
+      <div className="general-kpi-summary-row">
+        <div className="general-kpi-stat-box">
           <strong>Nombre total de parties :</strong><br />
           {gameStats?.TotalParties || '-'}
         </div>
-        <div style={{ minWidth: 200 }}>
+        <div className="general-kpi-stat-box">
           <strong>Durée moyenne :</strong><br />
           {gameStats?.DureeMoyenne || '-'}
         </div>
-        <div style={{ minWidth: 200 }}>
+        <div className="general-kpi-stat-box">
           <strong>Partie la plus courte :</strong><br />
           {gameStats?.PartiePlusCourte?.Duree || '-'}<br />
           <small>Date : {gameStats?.PartiePlusCourte?.Date || '-'}</small><br />
@@ -36,7 +36,7 @@ export default function GeneralKPI() {
             <a href={gameStats.PartiePlusCourte.LienVideo} target="_blank" rel="noopener noreferrer">Lien vidéo</a>
           )}
         </div>
-        <div style={{ minWidth: 200 }}>
+        <div className="general-kpi-stat-box">
           <strong>Partie la plus longue :</strong><br />
           {gameStats?.PartiePlusLongue?.Duree || '-'}<br />
           <small>Date : {gameStats?.PartiePlusLongue?.Date || '-'}</small><br />
