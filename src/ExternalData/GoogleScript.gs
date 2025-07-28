@@ -105,10 +105,25 @@ function getSessionStatsRaw() {
       MatchID: matchId,
       SessionDate: matchDate,
       DurationSeconds: durationSec,
+      YouTubeLinkWithTimeStamp: videoLink,
       YouTubeLink: videoLink
     });
   }
   
+  // Helper to clean YouTube link (remove timestamp)
+  function cleanYouTubeLink(url) {
+    if (!url) return '';
+    // Remove ?t= or &t= and everything after
+    // For youtu.be
+    url = url.replace(/\?t=\d+$/, '');
+    url = url.replace(/&t=\d+s?$/, '');
+    // For www.youtube.com
+    url = url.replace(/(\?|&)t=\d+s?/, '');
+    // Remove trailing ? if left
+    url = url.replace(/\?$/, '');
+    return url;
+  }
+
   // Group matches by session date
   var sessionsLookup = {};
   lycansMatches.forEach(function(match) {
@@ -118,6 +133,7 @@ function getSessionStatsRaw() {
         MatchCount: 0,
         TotalPlayTime: 0,
         Matches: [],
+        YouTubeLinksWithTimeStamp: [],
         YouTubeLinks: []
       };
     }
@@ -127,8 +143,15 @@ function getSessionStatsRaw() {
     currentSession.TotalPlayTime += match.DurationSeconds;
     currentSession.Matches.push(match.MatchID);
     
-    if (match.YouTubeLink && !currentSession.YouTubeLinks.includes(match.YouTubeLink)) {
-      currentSession.YouTubeLinks.push(match.YouTubeLink);
+    // Add full video link (with timestamp)
+    if (match.YouTubeLinkWithTimeStamp && !currentSession.YouTubeLinksWithTimeStamp.includes(match.YouTubeLinkWithTimeStamp)) {
+      currentSession.YouTubeLinksWithTimeStamp.push(match.YouTubeLinkWithTimeStamp);
+    }
+
+    // Add cleaned video link (without timestamp)
+    var cleanedLink = cleanYouTubeLink(match.YouTubeLinkWithTimeStamp);
+    if (cleanedLink && !currentSession.YouTubeLinks.includes(cleanedLink)) {
+      currentSession.YouTubeLinks.push(cleanedLink);
     }
   });
   
@@ -166,6 +189,7 @@ function getSessionStatsRaw() {
       DureeMoyenne: ticksToChronoFormat(avgDurationSecs),
       TempsJeuTotal: ticksToChronoFormat(sessionGroup.TotalPlayTime),
       JoueursMoyen: Math.round(avgPlayers * 10) / 10, // Round to 1 decimal
+      VideosYoutubeAvecTemps: sessionGroup.YouTubeLinksWithTimeStamp,
       VideosYoutube: sessionGroup.YouTubeLinks,
       PartiesIDs: sessionGroup.Matches
     });
@@ -297,6 +321,8 @@ function getPlayerDetailedStatsRaw() {
   var joueurIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.PLAYERID);
   var roleIdIdx = findColumnIndex(participationHeaders, LYCAN_COLS.ROLEID);
   var mortIdx = findColumnIndex(participationHeaders, LYCAN_COLS.DEATH);
+  var mortRaisonIdx = findColumnIndex(participationHeaders, LYCAN_COLS.DEATHCAUSE);
+  var mortTimingIdx = findColumnIndex(participationHeaders, LYCAN_COLS.DEATHTIMING);
   var resultatIdx = findColumnIndex(participationHeaders, LYCAN_COLS.VICTORY);
   var roleSecondaireIdx = findColumnIndex(participationHeaders, LYCAN_COLS.SECONDARY_ROLE);
 
@@ -332,6 +358,8 @@ function getPlayerDetailedStatsRaw() {
     var role = row[roleIdIdx];
     var roleSecondaire = row[roleSecondaireIdx];
     var mort = row[mortIdx] === 'OUI';
+    var mortRaison = row[mortRaisonIdx];
+    var mortTiming = row[mortTimingIdx];
     var resultat = row[resultatIdx] === 'V';
 
     if (!joueur) return;
@@ -347,6 +375,8 @@ function getPlayerDetailedStatsRaw() {
         Mort: 0,
         Roles: {},
         RolesSecondaires: {},
+        MortRaisons: {},
+        MortTimings: {},
         CampJoue: {},
         VictoireParCamp: {}
       };
@@ -393,6 +423,22 @@ function getPlayerDetailedStatsRaw() {
       }
       playerStats[joueur].RolesSecondaires[roleSecondaire]++;
     }
+
+    if (mortRaison)
+    {
+       if (!playerStats[joueur].MortRaisons[mortRaison]) {
+        playerStats[joueur].MortRaisons[mortRaison] = 0;
+      }
+      playerStats[joueur].MortRaisons[mortRaison]++;     
+    }
+
+    if (mortTiming)
+    {
+       if (!playerStats[joueur].MortTimings[mortTiming]) {
+        playerStats[joueur].MortTimings[mortTiming] = 0;
+      }
+      playerStats[joueur].MortTimings[mortTiming]++;     
+    }
   });
 
   // Calculer les taux et formater le résultat final
@@ -410,6 +456,56 @@ function getPlayerDetailedStatsRaw() {
 
     player.DistributionRolesSecondaires = Object.entries(player.RolesSecondaires).map(([role, count]) => ({
       RoleID: role,
+      Count: count,
+      Percentage: count / player.TotalParties
+    })).sort((a, b) => b.Count - a.Count);
+
+    player.DistributionMortTiming = Object.entries(player.MortTimings).map(([mortTiming, count]) => {
+      // Parse the timing format (J1, N2, C3, etc.)
+      let timingType = '';
+      let timingDay = 0;
+      let fullTimingName = mortTiming;
+      
+      if (mortTiming) {
+        // Extract type (first character) and day number
+        const typeChar = mortTiming.charAt(0);
+        const dayNum = parseInt(mortTiming.substring(1), 10);
+        
+        // Map the timing type
+        switch (typeChar) {
+          case 'J':
+            timingType = 'Jour';
+            break;
+          case 'N':
+            timingType = 'Nuit';
+            break;
+          case 'C':
+            timingType = 'Conseil';
+            break;
+          default:
+            timingType = 'Autre';
+        }
+        
+        // Set the day number if valid
+        if (!isNaN(dayNum)) {
+          timingDay = dayNum;
+        }
+        
+        // Create the full descriptive name
+        fullTimingName = `${timingType} ${timingDay}`;
+      }
+      
+      return {
+        MortTiming: fullTimingName,         // "Jour 1" (Full descriptive name)
+        TimingType: timingType,             // "Jour" (Category)
+        TimingDay: timingDay,               // 1 (Numeric day)
+        Count: count,
+        Percentage: count / player.TotalParties
+      };
+    }).sort((a, b) => b.Count - a.Count);
+
+      player.DistributionMortRaisons = Object.entries(player.MortRaisons).map(([mortRaison, count]) => ({
+      MortRaison: mortRaison,
       Count: count,
       Percentage: count / player.TotalParties
     })).sort((a, b) => b.Count - a.Count);

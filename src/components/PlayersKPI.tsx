@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { usePlayerColors } from '../hooks/usePlayersWithColors';
 import type { PlayerColor } from '../hooks/usePlayersWithColors';
+import type { PlayerMortTiming } from '../hooks/usePlayerDetailedStats';
 import './PlayersKPI.css';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -14,6 +15,7 @@ export default function PlayersKPI() {
   const { data: playersWithColors, loading: loadingColors } = usePlayerColors();
   const { playerStats, loading, error } = usePlayerDetailedStats();
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [mortTimingViewMode, setMortTimingViewMode] = useState<'chronological' | 'byType'>('chronological');
 
   if (loading || loadingColors) return <div>Chargement des statistiques des joueurs...</div>;
   if (error) return <div>Erreur: {error.message}</div>;
@@ -44,6 +46,47 @@ export default function PlayersKPI() {
   const selectedPlayerData = selectedPlayer 
     ? playerStats.find(p => p.JoueurID === selectedPlayer)
     : null;
+
+  const sortMortTimingChronologically = (data: PlayerMortTiming[]) => {
+    const typePriority: Record<string, number> = { 'Jour': 0, 'Nuit': 1, 'Conseil': 2, 'Autre': 3 };
+    return [...data].sort((a, b) => {
+      // First sort by day
+      if (a.TimingDay !== b.TimingDay) {
+        return a.TimingDay - b.TimingDay;
+      }
+      
+      // Then by type priority
+      return (typePriority[a.TimingType] || 99) - (typePriority[b.TimingType] || 99);
+    });
+  };
+
+  // Add this function to group death timings by type
+  const groupMortTimingByType = (data: PlayerMortTiming[]) => {
+    const groupedData = data.reduce<Record<string, PlayerMortTiming>>((acc, item) => {
+      if (!acc[item.TimingType]) {
+        acc[item.TimingType] = {
+          MortTiming: item.TimingType,
+          TimingType: item.TimingType,
+          TimingDay: 0,
+          Count: 0,
+          Percentage: 0
+        };
+      }
+      acc[item.TimingType].Count += item.Count;
+      acc[item.TimingType].Percentage += item.Percentage;
+      return acc;
+    }, {});
+    
+    return Object.values(groupedData);
+  };
+
+  // Define colors by timing type
+  const TIMING_TYPE_COLORS: Record<string, string> = {
+    'Jour': '#FFD700',     // Gold for day
+    'Nuit': '#0088FE',     // Blue for night 
+    'Conseil': '#FF8042',  // Orange for council 
+    'Autre': '#8884d8'     // Purple for other 
+  };
 
   return (
     <div className="player-stats">
@@ -186,6 +229,7 @@ export default function PlayersKPI() {
           
           <h4>Distribution des Rôles</h4>
           {selectedPlayerData.DistributionRoles.length > 0 ? (
+            <div className="chart-card">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -208,12 +252,14 @@ export default function PlayersKPI() {
                 <Tooltip formatter={(value) => [`${value} parties`, 'Nombre de parties']} />
               </PieChart>
             </ResponsiveContainer>
+            </div>
           ) : (
             <p>Aucune donnée de rôle disponible</p>
           )}
           
           <h4>Performance par Camp</h4>
           {selectedPlayerData.DistributionCamps.length > 0 ? (
+            <div className="chart-card">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={selectedPlayerData.DistributionCamps}
@@ -242,6 +288,115 @@ export default function PlayersKPI() {
                 <Bar dataKey="TauxVictoireCamp" name="% Victoire" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+          ) : (
+            <p>Aucune donnée de rôle disponible</p>
+          )}
+            {/* Section: Death Timing */}
+          <h4>Moments de Mort</h4>
+          {selectedPlayerData?.DistributionMortTiming && selectedPlayerData.DistributionMortTiming.length > 0 ? (
+            <>
+              <div className="chart-view-toggle">
+                <button 
+                  className={`chart-toggle-button${mortTimingViewMode === 'chronological' ? ' active' : ''}`}
+                  onClick={() => setMortTimingViewMode('chronological')}
+                >
+                  Vue Chronologique
+                </button>
+                <button 
+                  className={`chart-toggle-button${mortTimingViewMode === 'byType' ? ' active' : ''}`}
+                  onClick={() => setMortTimingViewMode('byType')}
+                >
+                  Vue par Type
+                </button>
+              </div>
+
+              <div className="chart-card">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={mortTimingViewMode === 'chronological' 
+                    ? sortMortTimingChronologically(selectedPlayerData.DistributionMortTiming)
+                    : groupMortTimingByType(selectedPlayerData.DistributionMortTiming)
+                  }
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="MortTiming" />
+                  <YAxis 
+                    tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                    domain={[0, Math.max(...selectedPlayerData.DistributionMortTiming.map(item => item.Percentage * 1.1))]}
+                  />
+                  <Tooltip
+                    formatter={(value, name, props) => {
+                      if (typeof value === 'number') {
+                        // Show "Nuit 3 : 4 fois (19.0%)" in chronological mode
+                        if (mortTimingViewMode === 'chronological') {
+                          const label = props?.payload?.MortTiming || '';
+                          return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${label}`];
+                        }
+                        // Show "Nuit : 4 fois (19.0%)" in type mode
+                        return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${props.payload.TimingType}`];
+                      }
+                      return [value, name];
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="Percentage" name="Fréquence">
+                    {mortTimingViewMode === 'chronological' 
+                      ? selectedPlayerData.DistributionMortTiming.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={TIMING_TYPE_COLORS[entry.TimingType] || COLORS[index % COLORS.length]} 
+                          />
+                        ))
+                      : groupMortTimingByType(selectedPlayerData.DistributionMortTiming).map((entry) => (
+                          <Cell 
+                            key={`cell-${entry.TimingType}`} 
+                            fill={TIMING_TYPE_COLORS[entry.TimingType] || '#888888'} 
+                          />
+                        ))
+                    }
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            </>
+          ) : (
+            <p>Aucune donnée de timing de mort disponible</p>
+          )}
+            
+            {/* Death Reasons */}
+            <h4>Causes de Mort</h4>
+            {selectedPlayerData.DistributionMortRaisons && selectedPlayerData.DistributionMortRaisons.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={selectedPlayerData.DistributionMortRaisons}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="MortRaison" />
+                  <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                  <Tooltip
+                    formatter={(value, _name, props) => {
+                      // Use the MortRaison label from the payload
+                      const raison = props?.payload?.MortRaison || '';
+                      if (typeof value === 'number') {
+                        return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${raison}`];
+                      }
+                      return [value, raison];
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="Percentage" name="Fréquence" fill="#8884d8">
+                    {selectedPlayerData.DistributionMortRaisons.map((_, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[(index + 2) % COLORS.length]} 
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
           ) : (
             <p>Aucune donnée de camp disponible</p>
           )}

@@ -6,6 +6,7 @@ export interface LycanSessionData {
   DureeMoyenne: string;
   TempsJeuTotal: string;
   JoueursMoyen: number;
+  VideosYoutubeAvecTemps: string[];
   VideosYoutube: string[];
   PartiesIDs: string[];
 }

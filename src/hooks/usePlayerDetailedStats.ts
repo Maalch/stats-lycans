@@ -14,6 +14,20 @@ export interface PlayerCamp {
   TauxVictoireCamp: number;
 }
 
+export interface PlayerMortTiming {
+  MortTiming: string;
+  TimingType: string; // "Jour", "Nuit" or "Conseil"
+  TimingDay: number; // Numeric day (1, 2, 3, etc)
+  Count: number;
+  Percentage: number;
+}
+  
+export interface PlayerMortRaisons {
+  MortRaison: string;
+  Count: number;
+  Percentage: number;
+}
+
 export interface PlayerDetailedStats {
   JoueurID: string;
   TotalParties: number;
@@ -26,6 +40,8 @@ export interface PlayerDetailedStats {
   DistributionRoles: PlayerRole[];
   DistributionRolesSecondaires: PlayerRole[];
   DistributionCamps: PlayerCamp[];
+  DistributionMortTiming: PlayerMortTiming[];
+  DistributionMortRaisons: PlayerMortRaisons[];
   TotalGames: number;
 }
 

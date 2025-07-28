@@ -214,6 +214,34 @@
   max-width: 100px;
 }
 
+.video-link {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-right: 6px;
+  background-color: #4853a8;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Accessibility focus styles */
+.video-link:hover,
+.video-link:focus {
+  background-color: #343552;
+  color: #ffd700;
+  text-decoration: underline;
+  outline: none;
+}
+
+.clickable-row:focus,
+.lycans-tab-button:focus {
+  outline: 2px solid #4853a8;
+  outline-offset: 2px;
+}
+
 /* Light theme overrides */
 @media (prefers-color-scheme: light) {
   .lycans-stats-table th,
@@ -242,10 +270,3 @@
   }
 }
 
-/* Accessibility focus styles */
-.clickable-row:focus,
-.lycans-tab-button:focus,
-.video-link:focus {
-  outline: 2px solid #4853a8;
-  outline-offset: 2px;
-}
