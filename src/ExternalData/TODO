@@ -1,19 +1,8 @@
 Idées de statistiques supplémentaires
 D après l analyse des données disponibles dans les fichiers CSV et les fonctions existantes, voici quelques statistiques intéressantes à implémenter :
 
-1. Statistiques par session de jeu
-   - Regrouper les parties par session de jeu (= même date), avec des statistiques globales:
-       - Nombre total de parties de la session
-       - Durée moyenne des parties de la session
-       - Temps de jeu total de la session
-       - Nombre moyen de joueurs par partie de la session
-       - Lien vers toutes les vidéos youtube de la session
-   - Statistiques détaillées par joueur dans la session :
-       - Nombre de parties jouées par le joueur
-       - Graphique des rôles joués par le joueur
-       - Graphique de victoire/défaite du joueur dans la session
-       - Graphique des survies du joueur dans la session
-2. Statistiques par rôle
+
+1. Statistiques par rôle
    - Taux de victoire par rôle : Quels rôles gagnent le plus souvent
    - Taux de survie par rôle : Quels rôles survivent le plus souvent
    - Popularité des rôles : Fréquence d apparition de chaque rôle

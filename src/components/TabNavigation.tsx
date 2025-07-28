@@ -1,3 +1,4 @@
+import './TabNavigation.css';
 
 interface TabNavigationProps {
   activeTab: string;

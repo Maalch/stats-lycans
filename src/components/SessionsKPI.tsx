@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSessionStats } from '../hooks/useSessionStats';
 import { usePlayerStatsBySession } from '../hooks/usePlayerStatsBySession';
+import './SessionsKPI.css';
 
 import { 
   Tooltip, ResponsiveContainer,

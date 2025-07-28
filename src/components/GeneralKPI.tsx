@@ -1,5 +1,6 @@
 
 import { useGameStats } from '../hooks/useGameStats';
+import './GeneralKPI.css';
 
 export default function GeneralKPI() {
   // Game stats (durée moyenne, plus courte, plus longue)

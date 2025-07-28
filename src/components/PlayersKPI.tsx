@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { usePlayerColors } from '../hooks/usePlayersWithColors';
 import type { PlayerColor } from '../hooks/usePlayersWithColors';
+import './PlayersKPI.css';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
