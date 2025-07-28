@@ -1,8 +1,66 @@
+:root {
+  /* Dark Theme (Default) */
+  --bg-primary: #23233a;          /* Main background */
+  --bg-secondary: #2c2c44;        /* Card/box background */
+  --bg-tertiary: #343552;         /* Button/header background */
+  --text-primary: #fff;           /* Main text */
+  --text-secondary: #bbb;         /* Secondary/small text */
+  --accent-primary: #4853a8;      /* Primary accent/highlight */
+  --accent-secondary: #e74c3c;    /* Secondary accent */
+  --accent-tertiary: #82ca9d;     /* Tertiary accent (success) */
+  
+  /* Chart Colors */
+  --chart-color-1: #0088FE;
+  --chart-color-2: #00C49F;
+  --chart-color-3: #FFBB28;
+  --chart-color-4: #FF8042;
+  --chart-color-5: #8884d8;
+  --chart-color-6: #82ca9d;
+  
+  /* Timing-specific colors */
+  --timing-day: #FFD700;
+  --timing-night: #0088FE;
+  --timing-council: #FF8042;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #f2f2f2;
+    --bg-tertiary: #e9e9f0;
+    --text-primary: #23233a;
+    --text-secondary: #666;
+    --accent-primary: #4853a8;
+    --accent-secondary: #e74c3c;
+  }
+}
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-container {
+  max-width: 2100px;
+  margin: 0 auto; /* Center horizontally */
+  padding: 0; /* Remove any padding */
+  min-width: 1200px;
+}
+
 /* Banner styling */
 .lycans-banner {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto 2rem auto;
+  width: 50%;
+  max-width: 400px;
+  min-width: 400px;
+  margin: 20px auto 1rem auto; /* Center horizontally, reduce bottom margin */
   display: block;
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
@@ -10,93 +68,82 @@
 
 /* Main container */
 .main-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  background: var(--main-bg);
+  max-width: 2800px;
+  width:auto;
+  margin: 0 auto; /* Center horizontally */
+  padding: 1rem; /* Reduced padding */
+  background: var(--bg-primary);
   border-radius: 18px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.08);
 }
 
-/* Section/card styling */
-.section-card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 2rem 1.5rem;
-  margin-bottom: 2rem;
+/* Stat Box Component */
+.stat-box {
+  min-width: 140px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  color: var(--text-primary);
+  text-align: center;
   box-shadow: 0 1px 8px rgba(0,0,0,0.07);
 }
 
-/* Headings */
-h1, h2 {
-  margin-top: 1.5rem;
-  margin-bottom: 1rem;
-  font-family: 'Montserrat', 'Arial', sans-serif;
-  letter-spacing: 1px;
+.stat-box h4 {
+  margin-top: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
 }
 
-/* Responsive tweaks */
-@media (max-width: 700px) {
-  .main-container {
-    padding: 1rem 0.2rem;
-  }
-  .section-card {
-    padding: 1rem 0.5rem;
-  }
+.stat-box p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 10px 0 0;
+  color: var(--text-primary);
 }
 
-/* CSS variables */
-:root {
-  --main-bg: rgba(30, 30, 40, 0.97);
-  --card-bg: #23233a;
-  --text-color: rgba(255, 255, 255, 0.87);
+.stat-box small {
+  color: var(--text-secondary);
 }
 
-body {
-  color: var(--text-color);
-  background: #242424;
-}
-
-.main-container {
-  background: var(--main-bg);
-}
-
-.section-card {
-  background: var(--card-bg);
-}
-
-/* Light theme overrides */
-@media (prefers-color-scheme: light) {
-  :root {
-    --main-bg: #f7f7fa;
-    --card-bg: #fff;
-    --text-color: #23233a;
-  }
-  body {
-    background: #f7f7fa;
-    color: var(--text-color);
-  }
-}
-
-/* Utility: info message (if used globally) */
-.info-message {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
-  color: #856404;
-  padding: 10px;
+/* Toggle Buttons */
+.toggle-button {
+  padding: 8px 16px;
   border-radius: 4px;
-  margin: 10px 0 20px;
-  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
-/* Utility: table container (if used globally) */
-.table-container {
-  overflow-x: auto;
-  margin-bottom: 30px;
+.toggle-button:hover {
+  background-color: var(--accent-primary);
+  opacity: 0.9;
 }
 
-/* Accessibility focus styles for shared elements */
-:focus {
-  outline: 2px solid #4853a8;
-  outline-offset: 2px;
+.toggle-button.active {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+/* Common link styles */
+.app-link {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+.app-link:hover {
+  color: var(--accent-secondary);
+}
+
+/* Chart Card */
+.chart-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: auto;
+  height: 400px; 
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.07);
 }

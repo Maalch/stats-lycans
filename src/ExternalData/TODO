@@ -1,5 +1,5 @@
-see if dynamic import() can be used
-Refactor CSS! Use "card styles" for card sections, add this in App.css
+- Add the name of the players in the charts in Statistiques des Joueurs
+- For each charts: order by biggest to smallest, only take top 15, min number of games played 11
 
 Idées de statistiques supplémentaires
 D après l analyse des données disponibles dans les fichiers CSV et les fonctions existantes, voici quelques statistiques intéressantes à implémenter :

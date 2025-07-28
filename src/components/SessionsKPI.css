@@ -1,10 +1,9 @@
-/* Main container for SessionsKPI */
+/* Session-specific styles */
 .lycans-session-stats {
   width: 100%;
   padding: 20px 0;
 }
 
-/* Session selector dropdown */
 .lycans-session-selector {
   margin-bottom: 25px;
 }
@@ -17,7 +16,7 @@
   font-size: 16px;
 }
 
-/* Table container and stats table */
+/* Table styles */
 .table-container {
   overflow-x: auto;
   margin-bottom: 30px;
@@ -30,8 +29,8 @@
 }
 
 .lycans-stats-table th {
-  background-color: #343552;
-  color: #fff;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
   font-weight: bold;
 }
 
@@ -48,7 +47,7 @@
 }
 
 .clickable-row:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-secondary);
 }
 
 /* Dark theme: stat box and session detail backgrounds */

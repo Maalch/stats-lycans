@@ -8,20 +8,3 @@
 .general-kpi-stat-box {
   min-width: 200px;
 }
-
-.general-kpi-stat-box strong {
-  font-weight: bold;
-}
-
-.general-kpi-stat-box small {
-  color: #888;
-}
-
-.general-kpi-stat-box a {
-  color: #4853a8;
-  text-decoration: underline;
-}
-
-.general-kpi-stat-box a:hover {
-  color: #e74c3c;
-}

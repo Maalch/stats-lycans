@@ -16,7 +16,7 @@ function App() {
   ];
 
   return (
-    <div>
+    <div className="app-container">
       <img
         className="lycans-banner"
         src={`${import.meta.env.BASE_URL}lycansBannerSVG.svg`}

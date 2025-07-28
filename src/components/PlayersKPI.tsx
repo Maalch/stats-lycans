@@ -112,38 +112,39 @@ export default function PlayersKPI() {
       {!selectedPlayer && (
         <div className="global-stats">
           <h3>Taux de victoire par joueur</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={playerStats.slice(0, 15)} // Limit to top 15 players
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="JoueurID" />
-              <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-              <Tooltip 
-                formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de victoire']}
-              />
-              <Legend />
-              <Bar 
-                dataKey="TauxVictoire" 
-                name="Taux de victoire"
-                fill="#8884d8" 
+          <div className="chart-card">
+            <ResponsiveContainer>
+              <BarChart
+                data={playerStats.slice(0, 15)} // Limit to top 15 players
               >
-                {playerStats.slice(0, 15).map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={playerColorMap[entry.JoueurID] || COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="JoueurID" />
+                <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                <Tooltip 
+                  formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de victoire']}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="TauxVictoire" 
+                  name="Taux de victoire"
+                  fill="#8884d8" 
+                >
+                  {playerStats.slice(0, 15).map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={playerColorMap[entry.JoueurID] || COLORS[index % COLORS.length]} 
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
           <h3>Taux de survie par joueur</h3>
-          <ResponsiveContainer width="100%" height={400}>
+          <div className="chart-card ">
+          <ResponsiveContainer>
             <BarChart
               data={playerStats.slice(0, 15)}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="JoueurID" />
@@ -166,33 +167,35 @@ export default function PlayersKPI() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </div>
          <h3>Taux de participation par joueur</h3>
-         <ResponsiveContainer width="100%" height={400}>
-          <BarChart
-            data={playerStatsWithParticipation.slice(0, 15)}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="JoueurID" />
-            <YAxis domain={[0, 1]} tickFormatter={v => `${(v * 100).toFixed(0)}%`} />
-            <Tooltip
-              formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de participation']}
-            />
-            <Legend />
-            <Bar
-              dataKey="ParticipationRate"
-              name="Taux de participation"
-              fill="#d40606"
+         <div className="chart-card">
+          <ResponsiveContainer>
+            <BarChart
+              data={playerStatsWithParticipation.slice(0, 15)}
             >
-              {playerStatsWithParticipation.slice(0, 15).map((player, index) => (
-                <Cell
-                  key={`cell-participation-${index}`}
-                  fill={playerColorMap[player.JoueurID] || COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="JoueurID" />
+              <YAxis domain={[0, 1]} tickFormatter={v => `${(v * 100).toFixed(0)}%`} />
+              <Tooltip
+                formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de participation']}
+              />
+              <Legend />
+              <Bar
+                dataKey="ParticipationRate"
+                name="Taux de participation"
+                fill="#d40606"
+              >
+                {playerStatsWithParticipation.slice(0, 15).map((player, index) => (
+                  <Cell
+                    key={`cell-participation-${index}`}
+                    fill={playerColorMap[player.JoueurID] || COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -230,7 +233,7 @@ export default function PlayersKPI() {
           <h4>Distribution des Rôles</h4>
           {selectedPlayerData.DistributionRoles.length > 0 ? (
             <div className="chart-card">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer>
               <PieChart>
                 <Pie
                   data={selectedPlayerData.DistributionRoles}
@@ -260,7 +263,7 @@ export default function PlayersKPI() {
           <h4>Performance par Camp</h4>
           {selectedPlayerData.DistributionCamps.length > 0 ? (
             <div className="chart-card">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer>
               <BarChart
                 data={selectedPlayerData.DistributionCamps}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -298,13 +301,13 @@ export default function PlayersKPI() {
             <>
               <div className="chart-view-toggle">
                 <button 
-                  className={`chart-toggle-button${mortTimingViewMode === 'chronological' ? ' active' : ''}`}
+                  className={`toggle-button${mortTimingViewMode === 'chronological' ? ' active' : ''}`}
                   onClick={() => setMortTimingViewMode('chronological')}
                 >
                   Vue Chronologique
                 </button>
                 <button 
-                  className={`chart-toggle-button${mortTimingViewMode === 'byType' ? ' active' : ''}`}
+                  className={`toggle-button${mortTimingViewMode === 'byType' ? ' active' : ''}`}
                   onClick={() => setMortTimingViewMode('byType')}
                 >
                   Vue par Type
@@ -312,7 +315,7 @@ export default function PlayersKPI() {
               </div>
 
               <div className="chart-card">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer>
                 <BarChart
                   data={mortTimingViewMode === 'chronological' 
                     ? sortMortTimingChronologically(selectedPlayerData.DistributionMortTiming)
@@ -368,35 +371,37 @@ export default function PlayersKPI() {
             {/* Death Reasons */}
             <h4>Causes de Mort</h4>
             {selectedPlayerData.DistributionMortRaisons && selectedPlayerData.DistributionMortRaisons.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={selectedPlayerData.DistributionMortRaisons}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="MortRaison" />
-                  <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-                  <Tooltip
-                    formatter={(value, _name, props) => {
-                      // Use the MortRaison label from the payload
-                      const raison = props?.payload?.MortRaison || '';
-                      if (typeof value === 'number') {
-                        return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${raison}`];
-                      }
-                      return [value, raison];
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="Percentage" name="Fréquence" fill="#8884d8">
-                    {selectedPlayerData.DistributionMortRaisons.map((_, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[(index + 2) % COLORS.length]} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="chart-card">
+                <ResponsiveContainer>
+                  <BarChart
+                    data={selectedPlayerData.DistributionMortRaisons}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="MortRaison" />
+                    <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                    <Tooltip
+                      formatter={(value, _name, props) => {
+                        // Use the MortRaison label from the payload
+                        const raison = props?.payload?.MortRaison || '';
+                        if (typeof value === 'number') {
+                          return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${raison}`];
+                        }
+                        return [value, raison];
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="Percentage" name="Fréquence" fill="#8884d8">
+                      {selectedPlayerData.DistributionMortRaisons.map((_, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COLORS[(index + 2) % COLORS.length]} 
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
           ) : (
             <p>Aucune donnée de camp disponible</p>
           )}
