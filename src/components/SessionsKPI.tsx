@@ -63,6 +63,7 @@ export default function SessionsKPI() {
                   <th>Durée moyenne</th>
                   <th>Temps total</th>
                   <th>Joueurs/partie</th>
+                  <th>Versions</th>
                   <th>Lien Youtube</th>
                 </tr>
               </thead>
@@ -78,6 +79,13 @@ export default function SessionsKPI() {
                     <td>{session.DureeMoyenne}</td>
                     <td>{session.TempsJeuTotal}</td>
                     <td>{session.JoueursMoyen}</td>
+                    <td>
+                      {session.Versions && session.Versions.length > 0 ? (
+                        session.Versions.join(', ')
+                      ) : (
+                        <span>-</span>
+                      )}
+                    </td>
                     <td>
                       {session.VideosYoutube && session.VideosYoutube.length > 0 ? (
                         session.VideosYoutube.map((link, idx) => (

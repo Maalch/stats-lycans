@@ -89,6 +89,7 @@ function getSessionStatsRaw() {
   var dateColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.CALENDAR);
   var durationColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.TIMING);
   var videoColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.YOUTUBE);
+  var versionColIdx = findColumnIndex(gameHeaders, LYCAN_COLS.VERSION);
   
   // Process match data to create objects with needed properties
   var lycansMatches = [];
@@ -98,6 +99,7 @@ function getSessionStatsRaw() {
     var matchDate = formatLycanDate(currentMatch[dateColIdx]);
     var durationSec = chronoToTicks(currentMatch[durationColIdx]);
     var videoLink = currentMatch[videoColIdx];
+    var version = currentMatch[versionColIdx];
     
     if (!matchId || !matchDate || durationSec === null) continue;
     
@@ -106,7 +108,8 @@ function getSessionStatsRaw() {
       SessionDate: matchDate,
       DurationSeconds: durationSec,
       YouTubeLinkWithTimeStamp: videoLink,
-      YouTubeLink: videoLink
+      YouTubeLink: videoLink,
+      Version: version
     });
   }
   
@@ -134,7 +137,8 @@ function getSessionStatsRaw() {
         TotalPlayTime: 0,
         Matches: [],
         YouTubeLinksWithTimeStamp: [],
-        YouTubeLinks: []
+        YouTubeLinks: [],
+        Versions: []
       };
     }
     
@@ -152,6 +156,10 @@ function getSessionStatsRaw() {
     var cleanedLink = cleanYouTubeLink(match.YouTubeLinkWithTimeStamp);
     if (cleanedLink && !currentSession.YouTubeLinks.includes(cleanedLink)) {
       currentSession.YouTubeLinks.push(cleanedLink);
+    }
+
+    if (match.Version && !currentSession.Versions.includes(match.Version)) {
+      currentSession.Versions.push(match.Version);
     }
   });
   
@@ -191,6 +199,7 @@ function getSessionStatsRaw() {
       JoueursMoyen: Math.round(avgPlayers * 10) / 10, // Round to 1 decimal
       VideosYoutubeAvecTemps: sessionGroup.YouTubeLinksWithTimeStamp,
       VideosYoutube: sessionGroup.YouTubeLinks,
+      Versions: sessionGroup.Versions,
       PartiesIDs: sessionGroup.Matches
     });
   });

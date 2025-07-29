@@ -18,6 +18,7 @@ const LYCAN_COLS = {
   CALENDAR: 'Date',
   YOUTUBE: 'LienVideo',
   MAPTYPE: 'Carte',
+  VERSION: 'Version',
   PLAYERID: 'JoueurID',
   COLOR: 'Couleur',
   ROLEID: 'RoleID',

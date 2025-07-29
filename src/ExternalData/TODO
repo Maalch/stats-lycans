@@ -1,6 +1,5 @@
 
 - For each charts: order by biggest to smallest, only take top 15, min number of games played 11
-- Ajouter la version de jeu à Session
 
 Idées de statistiques supplémentaires
 D après l analyse des données disponibles dans les fichiers CSV et les fonctions existantes, voici quelques statistiques intéressantes à implémenter :

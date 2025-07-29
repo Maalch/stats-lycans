@@ -9,6 +9,7 @@ export interface LycanSessionData {
   VideosYoutubeAvecTemps: string[];
   VideosYoutube: string[];
   PartiesIDs: string[];
+  Versions: string[];
 }
 
 export function useSessionStats() {
