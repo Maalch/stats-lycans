@@ -4,7 +4,7 @@ import TabNavigation from './components/TabNavigation';
 
 const GeneralKPI = lazy(() => import('./components/GeneralKPI'));
 const PlayersKPI = lazy(() => import('./components/players/PlayersKPI'));
-const SessionsKPI = lazy(() => import('./components/SessionsKPI'));
+const SessionsKPI = lazy(() => import('./components/sessions/SessionsKPI'));
 
 function App() {
   const [activeTab, setActiveTab] = useState('general');

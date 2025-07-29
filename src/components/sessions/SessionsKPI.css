@@ -162,16 +162,25 @@
 }
 
 .player-session-stats {
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 15px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  align-items: center;
 }
 
-.player-stat span,
+.player-stat {
+  display: contents; /* Allows children to participate in the grid */
+}
+
+.player-stat span {
+  justify-self: end;
+  font-weight: 500;
+}
+
 .player-stat strong {
-  color: #fff;
+  justify-self: start;
+  font-variant-numeric: tabular-nums;
 }
 
 .player-roles-chart {
