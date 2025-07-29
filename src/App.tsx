@@ -11,8 +11,8 @@ function App() {
 
   const tabs = [
     { id: 'general', label: 'Statistiques Générales' },
-    { id: 'sessions', label: 'Sessions de Jeu' },
     { id: 'players', label: 'Joueurs' },
+    { id: 'sessions', label: 'Sessions de Jeu' },
   ];
 
   return (
@@ -32,8 +32,8 @@ function App() {
         <div className="section-card">
           <Suspense fallback={<div>Chargement...</div>}>
             {activeTab === 'general' && <GeneralKPI />}
-            {activeTab === 'sessions' && <SessionsKPI />}
             {activeTab === 'players' && <PlayersKPI />}
+            {activeTab === 'sessions' && <SessionsKPI />}
           </Suspense>
         </div>
       </div>

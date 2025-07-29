@@ -120,8 +120,13 @@ export default function PlayersKPI() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="JoueurID" />
                 <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-                <Tooltip 
-                  formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de victoire']}
+                <Tooltip
+                  formatter={(value, _name, props) => {
+                    return [
+                      `${(Number(value) * 100).toFixed(1)}%`,
+                      `${props.payload.JoueurID}`
+                    ];
+                  }}
                 />
                 <Legend />
                 <Bar 
@@ -149,8 +154,13 @@ export default function PlayersKPI() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="JoueurID" />
               <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-              <Tooltip 
-                formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de survie']}
+                <Tooltip
+                  formatter={(value, _name, props) => {
+                    return [
+                      `${(Number(value) * 100).toFixed(1)}%`,
+                      `${props.payload.JoueurID}`
+                    ];
+                  }}
               />
               <Legend />
               <Bar 
@@ -177,8 +187,13 @@ export default function PlayersKPI() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="JoueurID" />
               <YAxis domain={[0, 1]} tickFormatter={v => `${(v * 100).toFixed(0)}%`} />
-              <Tooltip
-                formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Taux de participation']}
+                <Tooltip
+                  formatter={(value, _name, props) => {
+                    return [
+                      `${(Number(value) * 100).toFixed(1)}%`,
+                      `${props.payload.JoueurID}`
+                    ];
+                  }}
               />
               <Legend />
               <Bar
@@ -332,12 +347,12 @@ export default function PlayersKPI() {
                   <Tooltip
                     formatter={(value, name, props) => {
                       if (typeof value === 'number') {
-                        // Show "Nuit 3 : 4 fois (19.0%)" in chronological mode
+                        // Example: Show "Nuit 3 : 4 fois (19.0%)" in chronological mode
                         if (mortTimingViewMode === 'chronological') {
                           const label = props?.payload?.MortTiming || '';
                           return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${label}`];
                         }
-                        // Show "Nuit : 4 fois (19.0%)" in type mode
+                        // Example: Show "Nuit : 4 fois (19.0%)" in type mode
                         return [`${props.payload.Count} fois (${(value * 100).toFixed(1)}%)`, `${props.payload.TimingType}`];
                       }
                       return [value, name];
