@@ -3,18 +3,29 @@
   padding: 1.5rem 0;
 }
 
-.player-selector {
+.selectors-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+  align-items: flex-start;
+}
+
+.list-selector {
   margin-bottom: 24px;
 }
 
-.player-selector label {
+/* Ensure labels line up */
+.list-selector label {
+  display: inline-block;
+  width: 250px; 
   margin-right: 10px;
   font-weight: 500;
 }
 
-.player-selector select {
+.list-selector select {
   padding: 8px 12px;
   border-radius: 4px;
+  margin-right: 10px;
   border: 1px solid #ccc;
   min-width: 180px;
   font-size: 16px;

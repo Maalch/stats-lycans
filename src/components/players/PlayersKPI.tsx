@@ -37,12 +37,6 @@ export default function PlayersKPI() {
     sortedPlayers = [poncePlayer, ...sortedPlayers];
   }
 
-   const playerStatsWithParticipation = playerStats.map(player => ({
-   ...player,
-   ParticipationRate: player.TotalGames > 0 ? player.TotalParties / player.TotalGames : 0,
-   ParticipationPercent: player.TotalGames > 0 ? Number((player.TotalParties / player.TotalGames * 100).toFixed(1)) : 0,
-   }));
-
   const selectedPlayerData = selectedPlayer 
     ? playerStats.find(p => p.JoueurID === selectedPlayer)
     : null;
@@ -91,6 +85,7 @@ export default function PlayersKPI() {
   return (
       <div className="player-stats">
         <h2>Statistiques des Joueurs</h2>
+        <div className="selectors-column">
         <PlayerSelector
           players={sortedPlayers}
           selectedPlayer={selectedPlayer}
@@ -99,11 +94,11 @@ export default function PlayersKPI() {
         {!selectedPlayer && (
           <GlobalStatsCharts
             playerStats={playerStats}
-            playerStatsWithParticipation={playerStatsWithParticipation}
             playerColorMap={playerColorMap}
             COLORS={COLORS}
           />
         )}
+        </div>
         {selectedPlayerData && (
           <PlayerDetail
             selectedPlayerData={selectedPlayerData}

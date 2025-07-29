@@ -1,3 +1,5 @@
+import './PlayersKPI.css';
+
 // PlayerSelector.tsx
 interface PlayerSelectorProps {
   players: { JoueurID: string }[];
@@ -7,7 +9,7 @@ interface PlayerSelectorProps {
 
 export function PlayerSelector({ players, selectedPlayer, onChange }: PlayerSelectorProps) {
   return (
-    <div className="player-selector">
+    <div className="list-selector">
       <label>Sélectionner un joueur: </label>
       <select
         value={selectedPlayer || ''}
