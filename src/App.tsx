@@ -3,7 +3,7 @@ import './App.css';
 import TabNavigation from './components/TabNavigation';
 
 const GeneralKPI = lazy(() => import('./components/GeneralKPI'));
-const PlayersKPI = lazy(() => import('./components/PlayersKPI'));
+const PlayersKPI = lazy(() => import('./components/players/PlayersKPI'));
 const SessionsKPI = lazy(() => import('./components/SessionsKPI'));
 
 function App() {
